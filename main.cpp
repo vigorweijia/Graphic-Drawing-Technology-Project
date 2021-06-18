@@ -22,7 +22,7 @@ vec3 color(const Ray& r, Hitable *world, int depth)
 		Ray scattered;
 		vec3 attenuation;
 		vec3 emitted = record.matPtr->emitted(record.u, record.v, record.p);
-		if (depth < 35 && record.matPtr->scatter(r, record, attenuation, scattered))
+		if (depth < 50 && record.matPtr->scatter(r, record, attenuation, scattered))
 		{
 			return emitted + attenuation * color(scattered, world, depth + 1);
 		}
@@ -93,7 +93,7 @@ Hitable* GenerateRandomScene()
 
 Hitable* CornellBox()
 {
-	Hitable **list = new Hitable*[6];
+	Hitable **list = new Hitable*[8];
 	int i = 0;
 	Material *red = new Lambertian(new ConstantTexture(vec3(0.65, 0.05, 0.05)));
 	Material *white = new Lambertian(new ConstantTexture(vec3(0.73, 0.73, 0.73)));
@@ -105,14 +105,16 @@ Hitable* CornellBox()
 	list[i++] = new FlipNormals(new XzRect(0, 555, 0, 555, 555, white));
 	list[i++] = new XzRect(0, 555, 0, 555, 0, white);
 	list[i++] = new FlipNormals(new XyRect(0, 555, 0, 555, 555, white));
+	list[i++] = new Box(vec3(130, 0, 65), vec3(295, 165, 230), white);
+	list[i++] = new Box(vec3(265, 0, 295), vec3(430, 330, 460), white);
 	return new HitableList(list, i);
 }
 
 int main() {
 	srand(time(0));
     vec3_test();
-    int nx = 500;
-    int ny = 250;
+    int nx = 300;
+    int ny = 300;
 	int ns = 100;
 
     ofstream outImg("test.ppm", ios_base::out);

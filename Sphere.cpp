@@ -343,3 +343,22 @@ bool FlipNormals::HitObject(const Ray& r, float tMin, float tMax, HitRecord& rec
 		return false;
 	}
 }
+
+Box::Box(const vec3& p0, const vec3& p1, Material* ptr)
+{
+	pMin = p0;
+	pMax = p1;
+	Hitable** list = new Hitable*[6];
+	list[0] = new XyRect(p0.x(), p1.x(), p0.y(), p1.y(), p1.z(), ptr);
+	list[1] = new FlipNormals(new XyRect(p0.x(), p1.x(), p0.y(), p1.y(), p0.z(), ptr));
+	list[2] = new XzRect(p0.x(), p1.x(), p0.z(), p1.z(), p1.y(), ptr);
+	list[3] = new FlipNormals(new XzRect(p0.x(), p1.x(), p0.z(), p1.z(), p0.y(), ptr));
+	list[4] = new YzRect(p0.y(), p1.y(), p0.z(), p1.z(), p1.x(), ptr);
+	list[5] = new FlipNormals(new YzRect(p0.y(), p1.y(), p0.z(), p1.z(), p0.x(), ptr));
+	faceList = new HitableList(list, 6);
+}
+
+bool Box::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
+{
+	return faceList->HitObject(r, tMin, tMax, record);
+}

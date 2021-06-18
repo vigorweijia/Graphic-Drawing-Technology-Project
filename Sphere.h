@@ -9,6 +9,7 @@
 #include <cassert>
 
 #include "Hitable.h"
+#include "HitableList.h"
 
 class Sphere: public Hitable{
 private:
@@ -91,6 +92,15 @@ public:
 	Hitable* ptr;
 	FlipNormals(Hitable *p) : ptr(p) {}
 	bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& record) override;
+};
+
+class Box : public Hitable {
+public:
+	vec3 pMin, pMax;
+	Hitable* faceList;
+	Box() = default;
+	Box(const vec3& p0, const vec3& p1, Material* ptr);
+	bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& HitRecord) override;
 };
 
 #endif //RAYTRACING_SPHERE_H
