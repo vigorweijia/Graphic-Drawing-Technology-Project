@@ -21,18 +21,20 @@ vec3 color(const Ray& r, Hitable *world, int depth)
     {
 		Ray scattered;
 		vec3 attenuation;
+		vec3 emitted = record.matPtr->emitted(record.u, record.v, record.p);
 		if (depth < 35 && record.matPtr->scatter(r, record, attenuation, scattered))
 		{
-			return attenuation * color(scattered, world, depth + 1);
+			return emitted + attenuation * color(scattered, world, depth + 1);
 		}
 		else
 		{
-			return vec3(0, 0, 0);
+			return emitted;
 		}
     } else{
-        vec3 unitDirection = r.direction().unit();
+        /*vec3 unitDirection = r.direction().unit();
         float t = 0.5 * (unitDirection.y() + 1.0);
-        return (1.0 - t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
+        return (1.0 - t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);*/
+		return vec3(0, 0, 0); //change background color to black
     }
 }
 

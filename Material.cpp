@@ -110,3 +110,13 @@ float Dielectric::schlick(float cos, float ref)
 	r0 = r0 * r0;
 	return r0 + (1.0 - r0)*pow(1 - cos, 5);
 }
+
+bool DiffuseLight::scatter(const Ray& rIn, const HitRecord& record, vec3& attenuation, Ray& scattered)
+{
+	return false;
+}
+
+vec3 DiffuseLight::emitted(float u, float v, const vec3& p) const
+{
+	return emit->value(u, v, p);
+}

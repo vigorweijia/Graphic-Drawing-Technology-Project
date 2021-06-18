@@ -4,8 +4,6 @@
 #include "Ray.h"
 #include "utils.h"
 
-#define PI 3.14159265358979323846
-
 class Camera
 {
 private:

@@ -19,6 +19,7 @@ public:
     Sphere():center({0,0,0}),radius(1),matPtr(nullptr){}
 	Sphere(const vec3& c, float _r, Material* p) { center = c; radius = _r; matPtr = p; }
     bool HitObject(const Ray &r, float tMin, float tMax, HitRecord &record) override;
+	void getSphereUV(const vec3& p, float& u, float &v);
 };
 
 class Plane: public Hitable{
@@ -30,6 +31,7 @@ public:
 	Plane():p0({ 0,0,0 }), n({0,0,1}), matPtr(nullptr) {}
 	Plane(const vec3& _p, const vec3& _n, Material* p) { p0 = _p; n = _n; matPtr = p; }
 	bool HitObject(const Ray &r, float tMin, float tMax, HitRecord &record) override;
+	void getPlaneUV(const vec3& p, float& u, float &v);
 };
 
 class Cylinder : public Hitable {

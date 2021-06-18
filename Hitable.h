@@ -14,6 +14,9 @@ struct HitRecord{
     vec3 p;
     vec3 normal;
 	Material* matPtr;
+	//scale spherical coordinates (theta, phi) into u,v 
+	float u;
+	float v;
 };
 
 class Hitable {

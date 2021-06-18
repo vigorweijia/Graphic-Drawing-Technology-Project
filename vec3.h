@@ -8,6 +8,8 @@
 #include <cmath>
 #include <iostream>
 
+#define M_PI 3.1415926
+
 class vec3 {
 public:
     float e[3]{};

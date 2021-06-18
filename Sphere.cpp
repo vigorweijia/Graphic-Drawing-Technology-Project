@@ -26,6 +26,7 @@ bool Sphere::HitObject(const Ray &r, float tMin, float tMax, HitRecord &record)
 		record.p = r.loc_at_param(tempT);
 		record.normal = (record.p - center) / radius;
 		record.matPtr = matPtr;
+		getSphereUV((record.p - center) / radius, record.u, record.v);
 		return true;
 	}
 	tempT = (-b + sqrt(delta)) / (2 * a);
@@ -35,9 +36,18 @@ bool Sphere::HitObject(const Ray &r, float tMin, float tMax, HitRecord &record)
 		record.p = r.loc_at_param(tempT);
 		record.normal = (record.p - center) / radius;
 		record.matPtr = matPtr;
+		getSphereUV((record.p - center) / radius, record.u, record.v);
 		return true;
 	}
 	return false;
+}
+
+void Sphere::getSphereUV(const vec3&p, float& u, float& v)
+{
+	float phi = atan2(p.z(), p.x());
+	float theta = asin(p.y());
+	u = 1 - (phi + M_PI) / (2 * M_PI);
+	v = (theta + M_PI / 2) / M_PI;
 }
 
 bool Plane::HitObject(const Ray &r, float tMin, float tMax, HitRecord &record)
@@ -55,9 +65,16 @@ bool Plane::HitObject(const Ray &r, float tMin, float tMax, HitRecord &record)
 		record.p = r.loc_at_param(t);
 		record.normal = unit_vector(n);
 		record.matPtr = matPtr;
+		getPlaneUV(record.p, record.u, record.v);
 		return true;
 	}
 	return false;
+}
+
+void Plane::getPlaneUV(const vec3& p, float& u, float& v)
+{
+	u = 0;
+	v = 0;
 }
 
 bool Cylinder::HitObject(const Ray &r, float tMin, float tMax, HitRecord &record)
