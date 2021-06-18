@@ -14,10 +14,10 @@ public:
 class Lambertian : public Material
 {
 private:
-	vec3 albedo;
+	Texture* albedo;
 public:
 	Lambertian() = delete;
-	Lambertian(const vec3& a):albedo(a) {}
+	Lambertian(Texture* a):albedo(a) {}
 	bool scatter(const Ray& r, const HitRecord& record, vec3& attenuation, Ray& scattered) override;
 	vec3 randomInUnitSphere();
 };

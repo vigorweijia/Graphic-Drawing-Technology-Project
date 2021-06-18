@@ -56,4 +56,41 @@ private:
 	Material* matPtr;
 };
 
+class XyRect : public Hitable {
+public:
+	float x0, x1, y0, y1, z;
+	Material* matPtr;
+	XyRect() = default;
+	XyRect(float _x0, float _x1, float _y0, float _y1, float _z, Material* mat) :
+		x0(_x0), x1(_x1), y0(_y0), y1(_y1), z(_z), matPtr(mat) {}
+	bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& record) override;
+};
+
+class XzRect : public Hitable {
+public:
+	float x0, x1, z0, z1, y;
+	Material* matPtr;
+	XzRect() = default;
+	XzRect(float _x0, float _x1, float _z0, float _z1, float _y, Material* mat) :
+		x0(_x0), x1(_x1), z0(_z0), z1(_z1), y(_y), matPtr(mat) {}
+	bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& record) override;
+};
+
+class YzRect : public Hitable {
+public:
+	float y0, y1, z0, z1, x;
+	Material* matPtr;
+	YzRect() = default;
+	YzRect(float _y0, float _y1, float _z0, float _z1, float _x, Material* mat) :
+		y0(_y0), y1(_y1), z0(_z0), z1(_z1), x(_x), matPtr(mat) {}
+	bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& record) override;
+};
+
+class FlipNormals : public Hitable {
+public:
+	Hitable* ptr;
+	FlipNormals(Hitable *p) : ptr(p) {}
+	bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& record) override;
+};
+
 #endif //RAYTRACING_SPHERE_H

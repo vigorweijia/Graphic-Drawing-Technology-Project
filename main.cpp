@@ -43,11 +43,11 @@ Hitable* GenerateRandomScene()
 	int n = 500;
 	Hitable **list = new Hitable*[n + 1];
 	//list[0] = new Sphere(vec3(0, -1000, 0), 1000, new Lambertian(vec3(0.5, 0.5, 0.5)));
-	list[0] = new Plane(vec3(0, 0, 0), vec3(0, 1, 0), new Lambertian(vec3(0.8, 0.7, 0.9)));
+	list[0] = new Plane(vec3(0, 0, 0), vec3(0, 1, 0), new Lambertian(new ConstantTexture(vec3(0.8, 0.7, 0.9))));
 	int i = 1;
 	//list[1] = new Plane(vec3(0, 0, -2), vec3(0, 0, 1), new Lambertian(vec3(0.5, 0.5, 0.5)));
 	list[i++] = new Cylinder(vec3(0, 0.5, -0.5), 0.8, 1.0, Cylinder::yAxis, new Dielectric(1.5));
-	list[i++] = new Cylinder(vec3(-4, 0.8, -0.5), 0.8, 1.0, Cylinder::xAxis, new Lambertian(vec3(0.4,0.2,0.1)));
+	list[i++] = new Cylinder(vec3(-4, 0.8, -0.5), 0.8, 1.0, Cylinder::xAxis, new Lambertian(new ConstantTexture(vec3(0.4,0.2,0.1))));
 	list[i++] = new Cylinder(vec3(4, 0.8, -0.5), 0.8, 1.0, Cylinder::zAxis, new Metal(vec3(0.7, 0.6, 0.5), 0.0));
 	/*for (int a = -3; a < 3; a++)
 	{
@@ -86,8 +86,25 @@ Hitable* GenerateRandomScene()
 	//list[i++] = new Sphere(vec3(-4, 0.8, 2.2), 0.8, new Lambertian(vec3(0.4, 0.2, 0.1)));
 	//list[i++] = new Sphere(vec3(4, 0.8, 2), 0.8, new Metal(vec3(0.7, 0.6, 0.5), 0.0));
 	list[i++] = new Sphere(vec3(0,0.8,2.5), 0.8, new Dielectric(1.5));
-	list[i++] = new Sphere(vec3(-4,0.8,2.2), 0.8, new Lambertian(vec3(0.4,0.2,0.1)));
+	list[i++] = new Sphere(vec3(-4,0.8,2.2), 0.8, new Lambertian(new ConstantTexture(vec3(0.4,0.2,0.1))));
 	list[i++] = new Sphere(vec3(4,0.8,2), 0.8, new Metal(vec3(0.7,0.6,0.5), 0.0));
+	return new HitableList(list, i);
+}
+
+Hitable* CornellBox()
+{
+	Hitable **list = new Hitable*[6];
+	int i = 0;
+	Material *red = new Lambertian(new ConstantTexture(vec3(0.65, 0.05, 0.05)));
+	Material *white = new Lambertian(new ConstantTexture(vec3(0.73, 0.73, 0.73)));
+	Material *green = new Lambertian(new ConstantTexture(vec3(0.12, 0.45, 0.12)));
+	Material *light = new DiffuseLight(new ConstantTexture(vec3(1, 1, 1)));
+	list[i++] = new FlipNormals(new YzRect(0, 555, 0, 555, 555, green));
+	list[i++] = new YzRect(0, 555, 0, 555, 0, red);
+	list[i++] = new XzRect(213, 343, 227, 332, 554, light);
+	list[i++] = new FlipNormals(new XzRect(0, 555, 0, 555, 555, white));
+	list[i++] = new XzRect(0, 555, 0, 555, 0, white);
+	list[i++] = new FlipNormals(new XyRect(0, 555, 0, 555, 555, white));
 	return new HitableList(list, i);
 }
 
@@ -96,7 +113,7 @@ int main() {
     vec3_test();
     int nx = 500;
     int ny = 250;
-	int ns = 20;
+	int ns = 100;
 
     ofstream outImg("test.ppm", ios_base::out);
     outImg << "P3\n" << nx << " " << ny << "\n255\n";
@@ -107,14 +124,20 @@ int main() {
 	list[3] = new Sphere(vec3(-1, 0, -1), 0.5, new Dielectric(1.5));
 	list[4] = new Sphere(vec3(-1, 0, -1), -0.45, new Dielectric(1.5));
 	*/
-    Hitable *world = GenerateRandomScene();
+	Hitable *world = CornellBox();
 
-	vec3 lookFrom(13, 3, 3);
+	/*vec3 lookFrom(13, 3, 3);
 	vec3 lookAt(0, 0, 0);
 	float dist2focus = 10.0;
 	float aperture = 0.0;
 	Camera camera(lookFrom, lookAt, vec3(0,1,0), 20, float(nx)/float(ny), aperture, dist2focus);
-    
+    */
+	vec3 lookFrom(278, 278, -800);
+	vec3 lookAt(278, 278, 0);
+	float dist2focus = 10.0;
+	float aperture = 0.0;
+	float vofv = 40.0;
+	Camera camera(lookFrom, lookAt, vec3(0, 1, 0), vofv, float(nx) / float(ny), aperture, dist2focus);
 	
 	for (int j = ny - 1; j >= 0; j--)
         for(int i = 0; i < nx; i++)

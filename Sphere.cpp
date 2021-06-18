@@ -276,3 +276,70 @@ bool Cylinder::CrossCircle(const Ray& r, const vec3& c, const vec3& n, float& t)
 	t = tempT;
 	return true;
 }
+
+bool XyRect::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
+{
+	float t = (z - r.origin().z()) / r.direction().z();
+	if (t < tMin || t > tMax) 
+		return false;
+	float x = r.origin().x() + t * r.direction().x();
+	float y = r.origin().y() + t * r.direction().y();
+	if (x < x0 || x > x1 || y < y0 || y > y1)
+		return false;
+	record.u = (x - x0) / (x1 - x0);
+	record.v = (y - y0) / (y1 - y0);
+	record.t = t;
+	record.matPtr = matPtr;
+	record.p = r.loc_at_param(t);
+	record.normal = vec3(0, 0, 1);
+	return true;
+}
+
+bool XzRect::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
+{
+	float t = (y - r.origin().y()) / r.direction().y();
+	if (t < tMin || t > tMax)
+		return false;
+	float x = r.origin().x() + t * r.direction().x();
+	float z = r.origin().z() + t * r.direction().z();
+	if (x < x0 || x > x1 || z < z0 || z > z1)
+		return false;
+	record.u = (x - x0) / (x1 - x0);
+	record.v = (z - z0) / (z1 - z0);
+	record.t = t;
+	record.matPtr = matPtr;
+	record.p = r.loc_at_param(t);
+	record.normal = vec3(0, 1, 0);
+	return true;
+}
+
+bool YzRect::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
+{
+	float t = (x - r.origin().x()) / r.direction().x();
+	if (t < tMin || t > tMax)
+		return false;
+	float y = r.origin().y() + t * r.direction().y();
+	float z = r.origin().z() + t * r.direction().z();
+	if (y < y0 || y > y1 || z < z0 || z > z1)
+		return false;
+	record.u = (y - y0) / (y1 - y0);
+	record.v = (z - z0) / (z1 - z0);
+	record.t = t;
+	record.matPtr = matPtr;
+	record.p = r.loc_at_param(t);
+	record.normal = vec3(1, 0, 0);
+	return true;
+}
+
+bool FlipNormals::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
+{
+	if (ptr->HitObject(r, tMin, tMax, record))
+	{
+		record.normal = -record.normal;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}

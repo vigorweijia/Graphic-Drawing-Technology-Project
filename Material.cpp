@@ -5,7 +5,7 @@ bool Lambertian::scatter(const Ray& r, const HitRecord& record, vec3& attenuatio
 {
 	vec3 target = record.p + record.normal + randomInUnitSphere();
 	scattered = Ray(record.p, target - record.p);
-	attenuation = albedo;
+	attenuation = albedo->value(record.u, record.v, record.p);
 	return true;
 }
 
