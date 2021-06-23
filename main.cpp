@@ -22,9 +22,11 @@ vec3 color(const Ray& r, Hitable *world, int depth)
 		Ray scattered;
 		vec3 attenuation;
 		vec3 emitted = record.matPtr->emitted(record.u, record.v, record.p);
-		if (depth < 50 && record.matPtr->scatter(r, record, attenuation, scattered))
+		float pdf;
+		if (depth < 50 && record.matPtr->scatter(r, record, attenuation, scattered, pdf))
 		{
-			return emitted + attenuation * color(scattered, world, depth + 1);
+			//return emitted + attenuation * color(scattered, world, depth + 1);
+			return emitted + attenuation * record.matPtr->scatterPdf(r, record, scattered) * color(scattered, world, depth + 1) / pdf;
 		}
 		else
 		{
@@ -98,15 +100,19 @@ Hitable* CornellBox()
 	Material *red = new Lambertian(new ConstantTexture(vec3(0.65, 0.05, 0.05)));
 	Material *white = new Lambertian(new ConstantTexture(vec3(0.73, 0.73, 0.73)));
 	Material *green = new Lambertian(new ConstantTexture(vec3(0.12, 0.45, 0.12)));
-	Material *light = new DiffuseLight(new ConstantTexture(vec3(1, 1, 1)));
+	Material *light = new DiffuseLight(new ConstantTexture(vec3(15, 15, 15)));
 	list[i++] = new FlipNormals(new YzRect(0, 555, 0, 555, 555, green));
 	list[i++] = new YzRect(0, 555, 0, 555, 0, red);
 	list[i++] = new XzRect(213, 343, 227, 332, 554, light);
 	list[i++] = new FlipNormals(new XzRect(0, 555, 0, 555, 555, white));
 	list[i++] = new XzRect(0, 555, 0, 555, 0, white);
 	list[i++] = new FlipNormals(new XyRect(0, 555, 0, 555, 555, white));
-	list[i++] = new Box(vec3(130, 0, 65), vec3(295, 165, 230), white);
-	list[i++] = new Box(vec3(265, 0, 295), vec3(430, 330, 460), white);
+	list[i++] = new Translate(
+		new RotateY(new Box(vec3(0, 0, 0), vec3(165, 165, 165), white), -18), 
+		vec3(130, 0, 65));
+	list[i++] = new Translate(
+		new RotateY(new Box(vec3(0, 0, 0), vec3(165, 330, 165), white), 15),
+		vec3(265, 0, 295));
 	return new HitableList(list, i);
 }
 
@@ -115,7 +121,7 @@ int main() {
     vec3_test();
     int nx = 300;
     int ny = 300;
-	int ns = 100;
+	int ns = 50;
 
     ofstream outImg("test.ppm", ios_base::out);
     outImg << "P3\n" << nx << " " << ny << "\n255\n";
@@ -142,8 +148,9 @@ int main() {
 	Camera camera(lookFrom, lookAt, vec3(0, 1, 0), vofv, float(nx) / float(ny), aperture, dist2focus);
 	
 	for (int j = ny - 1; j >= 0; j--)
-        for(int i = 0; i < nx; i++)
-        {
+	{
+		for (int i = 0; i < nx; i++)
+		{
 			vec3 col(0.0, 0.0, 0.0);
 			for (int k = 0; k < ns; k++)
 			{
@@ -153,14 +160,17 @@ int main() {
 				col += color(r, world, 0);
 			}
 
-            // vec3 p = r.loc_at_param(2.0);
+			// vec3 p = r.loc_at_param(2.0);
 			col /= ns;
 			col = vec3(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
-            int ir = int(255.99*col[0]);
-            int ig = int(255.99*col[1]);
-            int ib = int(255.99*col[2]);
-            outImg << ir << " " << ig << " " << ib << endl;
-        }
+			int ir = int(255.99*col[0]);
+			int ig = int(255.99*col[1]);
+			int ib = int(255.99*col[2]);
+			outImg << ir << " " << ig << " " << ib << endl;
+			
+		}
+		cout << j << endl;
+	}
 }
 
 void vec3_test()

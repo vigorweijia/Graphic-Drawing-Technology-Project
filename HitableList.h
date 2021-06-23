@@ -12,6 +12,7 @@ public:
     HitableList() = default;
     HitableList(Hitable **L, int n) {list = L; list_size = n;}
     bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& record) override;
+	bool boundingBox(float t0, float t1, AABB& box) override;
     Hitable **list{};
     int list_size{};
 };

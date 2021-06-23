@@ -1,12 +1,28 @@
 #include "Material.h"
 #include "utils.h"
 
-bool Lambertian::scatter(const Ray& r, const HitRecord& record, vec3& attenuation, Ray& scattered)
+bool Lambertian::scatter(const Ray& r, const HitRecord& record, vec3& attenuation, Ray& scattered, float& pdf)
 {
-	vec3 target = record.p + record.normal + randomInUnitSphere();
+	/*vec3 target = record.p + record.normal + randomInUnitSphere();
 	scattered = Ray(record.p, target - record.p);
 	attenuation = albedo->value(record.u, record.v, record.p);
+	pdf = dot(record.normal, scattered.direction()) / M_PI;
+	return true;*/
+	vec3 direction;
+	do {
+		direction = randomInUnitSphere();
+	} while (dot(direction, record.normal) < 0);
+	scattered = Ray(record.p, unit_vector(direction));
+	attenuation = albedo->value(record.u, record.v, record.p);
+	pdf = 0.5 / M_PI;
 	return true;
+}
+
+float Lambertian::scatterPdf(const Ray& r, const HitRecord& record, const Ray& scattered)
+{
+	float cosine = dot(record.normal, unit_vector(scattered.direction()));
+	if (cosine < 0) cosine = 0;
+	return cosine / M_PI;
 }
 
 vec3 Lambertian::randomInUnitSphere()
@@ -18,7 +34,7 @@ vec3 Lambertian::randomInUnitSphere()
 	return p;
 }
 
-bool Metal::scatter(const Ray& r, const HitRecord& record, vec3& attenuation, Ray& scattered)
+bool Metal::scatter(const Ray& r, const HitRecord& record, vec3& attenuation, Ray& scattered, float& pdf)
 {
 	vec3 reflected = reflect(r.direction().unit(), record.normal);
 	scattered = Ray(record.p, reflected + fuzz * randomInUnitSphere());
@@ -40,7 +56,7 @@ vec3 Metal::randomInUnitSphere()
 	return p;
 }
 
-bool Dielectric::scatter(const Ray& r, const HitRecord& record, vec3& attenuation, Ray& scattered)
+bool Dielectric::scatter(const Ray& r, const HitRecord& record, vec3& attenuation, Ray& scattered, float& pdf)
 {
 	float nRatio;
 	vec3 outwardNormal;
@@ -111,7 +127,7 @@ float Dielectric::schlick(float cos, float ref)
 	return r0 + (1.0 - r0)*pow(1 - cos, 5);
 }
 
-bool DiffuseLight::scatter(const Ray& rIn, const HitRecord& record, vec3& attenuation, Ray& scattered)
+bool DiffuseLight::scatter(const Ray& rIn, const HitRecord& record, vec3& attenuation, Ray& scattered, float& pdf)
 {
 	return false;
 }

@@ -50,6 +50,12 @@ void Sphere::getSphereUV(const vec3&p, float& u, float& v)
 	v = (theta + M_PI / 2) / M_PI;
 }
 
+bool Sphere::boundingBox(float t0, float t1, AABB& box)
+{
+	box = AABB(center - vec3(radius, radius, radius), center + vec3(radius, radius, radius));
+	return true;
+}
+
 bool Plane::HitObject(const Ray &r, float tMin, float tMax, HitRecord &record)
 {
 	vec3 aMinusP0 = r.origin() - p0;
@@ -75,6 +81,11 @@ void Plane::getPlaneUV(const vec3& p, float& u, float& v)
 {
 	u = 0;
 	v = 0;
+}
+
+bool Plane::boundingBox(float t0, float t1, AABB& box)
+{
+	return false;
 }
 
 bool Cylinder::HitObject(const Ray &r, float tMin, float tMax, HitRecord &record)
@@ -277,6 +288,11 @@ bool Cylinder::CrossCircle(const Ray& r, const vec3& c, const vec3& n, float& t)
 	return true;
 }
 
+bool Cylinder::boundingBox(float t0, float t1, AABB& box)
+{
+	return false;
+}
+
 bool XyRect::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
 {
 	float t = (z - r.origin().z()) / r.direction().z();
@@ -292,6 +308,12 @@ bool XyRect::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
 	record.matPtr = matPtr;
 	record.p = r.loc_at_param(t);
 	record.normal = vec3(0, 0, 1);
+	return true;
+}
+
+bool XyRect::boundingBox(float t0, float t1, AABB& box)
+{
+	box = AABB(vec3(x0, y0, z - 0.0001), vec3(x1, y1, z + 0.0001));
 	return true;
 }
 
@@ -313,6 +335,12 @@ bool XzRect::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
 	return true;
 }
 
+bool XzRect::boundingBox(float t0, float t1, AABB& box)
+{
+	box = AABB(vec3(x0, y - 0.0001, z0), vec3(x1, y + 0.0001, z1));
+	return true;
+}
+
 bool YzRect::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
 {
 	float t = (x - r.origin().x()) / r.direction().x();
@@ -331,6 +359,12 @@ bool YzRect::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
 	return true;
 }
 
+bool YzRect::boundingBox(float t0, float t1, AABB& box)
+{
+	box = AABB(vec3(x - 0.0001, y0, z0), vec3(x + 0.0001, y1, z1));
+	return true;
+}
+
 bool FlipNormals::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
 {
 	if (ptr->HitObject(r, tMin, tMax, record))
@@ -342,6 +376,11 @@ bool FlipNormals::HitObject(const Ray& r, float tMin, float tMax, HitRecord& rec
 	{
 		return false;
 	}
+}
+
+bool FlipNormals::boundingBox(float t0, float t1, AABB& box)
+{
+	return ptr->boundingBox(t0, t1, box);
 }
 
 Box::Box(const vec3& p0, const vec3& p1, Material* ptr)
@@ -361,4 +400,101 @@ Box::Box(const vec3& p0, const vec3& p1, Material* ptr)
 bool Box::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
 {
 	return faceList->HitObject(r, tMin, tMax, record);
+}
+
+bool Box::boundingBox(float t0, float t1, AABB& box)
+{
+	box = AABB(pMin, pMax);
+	return true;
+}
+
+bool Translate::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
+{
+	Ray movedRay(r.origin() - offset, r.direction());
+	if (ptr->HitObject(movedRay, tMin, tMax, record))
+	{
+		record.p += offset;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool Translate::boundingBox(float t0, float t1, AABB& box)
+{
+	if (ptr->boundingBox(t0, t1, box))
+	{
+		box = AABB(box.min() + offset, box.max() + offset);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+RotateY::RotateY(Hitable* p, float angle)
+{
+	float radians = (M_PI / 180.0) * angle;
+	sinTheta = sin(radians);
+	cosTheta = cos(radians);
+	ptr = p;
+
+	hasBox = ptr->boundingBox(0, 1, bbox);
+	vec3 minn(FLT_MAX, FLT_MAX, FLT_MAX);
+	vec3 maxn(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+	for(int i = 0; i < 2; i++)
+		for(int j = 0; j < 2; j++)
+			for (int k = 0; k < 2; k++)
+			{
+				float x = i * bbox.max().x() + (1 - i) * bbox.min().x();
+				float y = j * bbox.max().y() + (1 - j) * bbox.min().y();
+				float z = k * bbox.max().z() + (1 - k) * bbox.min().z();
+				float newx = cosTheta * x + sinTheta * z;
+				float newz = -sinTheta * x + cosTheta * z;
+				vec3 tester(newx, y, newz);
+				for (int c = 0; c < 3; c++)
+				{
+					if (tester[c] > maxn[c])
+						maxn[c] = tester[c];
+					if (tester[c] < minn[c])
+						minn[c] = tester[c];
+				}
+			}
+	bbox = AABB(minn, maxn);
+}
+
+bool RotateY::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
+{
+	vec3 origin = r.origin();
+	vec3 direction = r.direction();
+	origin[0] = cosTheta * r.origin()[0] - sinTheta * r.origin()[2];
+	origin[2] = sinTheta * r.origin()[0] + cosTheta * r.origin()[2];
+	direction[0] = cosTheta * r.direction()[0] - sinTheta * r.direction()[2];
+	direction[2] = sinTheta * r.direction()[0] + cosTheta * r.direction()[2];
+	Ray rotatedRay(origin, direction);
+	if (ptr->HitObject(rotatedRay, tMin, tMax, record))
+	{
+		vec3 p = record.p;
+		vec3 normal = record.normal;
+		p[0] = cosTheta * record.p[0] + sinTheta * record.p[2];
+		p[2] = -sinTheta * record.p[0] + cosTheta * record.p[2];
+		normal[0] = cosTheta * record.normal[0] + sinTheta * record.normal[2];
+		normal[2] = -sinTheta * record.normal[0] + cosTheta * record.normal[2];
+		record.p = p;
+		record.normal = normal;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool RotateY::boundingBox(float t0, float t1, AABB& box)
+{
+	box = bbox;
+	return hasBox;
 }

@@ -20,3 +20,24 @@ bool HitableList::HitObject(const Ray &r, float tMin, float tMax, HitRecord &rec
 	}
 	return hitAnything;
 }
+
+bool HitableList::boundingBox(float t0, float t1, AABB& box)
+{
+	if (list_size < 1) return false;
+	AABB tempBox;
+	bool firstTrue = list[0]->boundingBox(t0, t1, tempBox);
+	if (!firstTrue)
+		return false;
+	for (int i = 1; i < list_size; i++)
+	{
+		if (list[i]->boundingBox(t0, t1, tempBox))
+		{
+			box = SurroundingBox(box, tempBox);
+		}
+		else
+		{
+			return false;
+		}
+	}
+	return true;
+}

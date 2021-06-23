@@ -6,6 +6,7 @@
 #define RAYTRACING_HITABLE_H
 
 #include "Ray.h"
+#include "AABB.h"
 
 class Material;
 
@@ -23,6 +24,7 @@ class Hitable {
 public:
     virtual ~Hitable() = default;
     virtual bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& record) = 0;
+	virtual bool boundingBox(float t0, float t1, AABB& box) = 0;
 };
 
 #endif //RAYTRACING_HITABLE_H

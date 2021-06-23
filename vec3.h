@@ -9,6 +9,7 @@
 #include <iostream>
 
 #define M_PI 3.1415926
+// #define FLT_MAX 65536.0
 
 class vec3 {
 public:

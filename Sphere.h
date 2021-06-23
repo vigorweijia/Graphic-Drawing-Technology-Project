@@ -20,6 +20,7 @@ public:
     Sphere():center({0,0,0}),radius(1),matPtr(nullptr){}
 	Sphere(const vec3& c, float _r, Material* p) { center = c; radius = _r; matPtr = p; }
     bool HitObject(const Ray &r, float tMin, float tMax, HitRecord &record) override;
+	bool boundingBox(float t0, float t1, AABB& box) override;
 	void getSphereUV(const vec3& p, float& u, float &v);
 };
 
@@ -32,6 +33,7 @@ public:
 	Plane():p0({ 0,0,0 }), n({0,0,1}), matPtr(nullptr) {}
 	Plane(const vec3& _p, const vec3& _n, Material* p) { p0 = _p; n = _n; matPtr = p; }
 	bool HitObject(const Ray &r, float tMin, float tMax, HitRecord &record) override;
+	bool boundingBox(float t0, float t1, AABB& box) override;
 	void getPlaneUV(const vec3& p, float& u, float &v);
 };
 
@@ -46,6 +48,7 @@ public:
 	Cylinder() :center({ 0,0,0 }), radius(1.0), height(1.0), d(yAxis), matPtr(nullptr) { halfHeight = 0.0; }
 	Cylinder(const vec3& c, float r, float h, Dir _d, Material* p) { center = c; radius = r; height = h; d = _d; matPtr = p; halfHeight = height / 2.0; }
 	bool HitObject(const Ray &r, float tMin, float tMax, HitRecord &record) override;
+	bool boundingBox(float t0, float t1, AABB& box) override;
 	bool Quadratic(float a, float b, float c, float& x1, float& x2);
 	bool CrossCircle(const Ray& r, const vec3& c, const vec3& n, float& t);
 private:
@@ -65,6 +68,7 @@ public:
 	XyRect(float _x0, float _x1, float _y0, float _y1, float _z, Material* mat) :
 		x0(_x0), x1(_x1), y0(_y0), y1(_y1), z(_z), matPtr(mat) {}
 	bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& record) override;
+	bool boundingBox(float t0, float t1, AABB& box) override;
 };
 
 class XzRect : public Hitable {
@@ -75,6 +79,7 @@ public:
 	XzRect(float _x0, float _x1, float _z0, float _z1, float _y, Material* mat) :
 		x0(_x0), x1(_x1), z0(_z0), z1(_z1), y(_y), matPtr(mat) {}
 	bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& record) override;
+	bool boundingBox(float t0, float t1, AABB& box) override;
 };
 
 class YzRect : public Hitable {
@@ -85,6 +90,7 @@ public:
 	YzRect(float _y0, float _y1, float _z0, float _z1, float _x, Material* mat) :
 		y0(_y0), y1(_y1), z0(_z0), z1(_z1), x(_x), matPtr(mat) {}
 	bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& record) override;
+	bool boundingBox(float t0, float t1, AABB& box) override;
 };
 
 class FlipNormals : public Hitable {
@@ -92,6 +98,7 @@ public:
 	Hitable* ptr;
 	FlipNormals(Hitable *p) : ptr(p) {}
 	bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& record) override;
+	bool boundingBox(float t0, float t1, AABB& box) override;
 };
 
 class Box : public Hitable {
@@ -100,7 +107,31 @@ public:
 	Hitable* faceList;
 	Box() = default;
 	Box(const vec3& p0, const vec3& p1, Material* ptr);
-	bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& HitRecord) override;
+	bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& record) override;
+	bool boundingBox(float t0, float t1, AABB& box) override;
+};
+
+class Translate : public Hitable {
+public:
+	Hitable* ptr;
+	vec3 offset;
+	Translate() = delete;
+	Translate(Hitable* p, const vec3& displacement) : ptr(p), offset(displacement) {}
+	bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& record) override;
+	bool boundingBox(float t0, float t1, AABB& box) override;
+};
+
+class RotateY : public Hitable {
+public:
+	Hitable* ptr;
+	float sinTheta;
+	float cosTheta;
+	bool hasBox;
+	AABB bbox;
+	RotateY() = delete;
+	RotateY(Hitable* p, float angle);
+	bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& record) override;
+	bool boundingBox(float t0, float t1, AABB& box) override;
 };
 
 #endif //RAYTRACING_SPHERE_H
