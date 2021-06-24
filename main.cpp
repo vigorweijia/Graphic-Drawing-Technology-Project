@@ -20,13 +20,13 @@ vec3 color(const Ray& r, Hitable *world, int depth)
     if(world->HitObject(r, 0.001, 1000, record))
     {
 		Ray scattered;
-		vec3 attenuation;
+		vec3 albedo;
 		vec3 emitted = record.matPtr->emitted(record.u, record.v, record.p);
 		float pdf;
-		if (depth < 50 && record.matPtr->scatter(r, record, attenuation, scattered, pdf))
+		if (depth < 50 && record.matPtr->scatter(r, record, albedo, scattered, pdf))
 		{
 			//return emitted + attenuation * color(scattered, world, depth + 1);
-			return emitted + attenuation * record.matPtr->scatterPdf(r, record, scattered) * color(scattered, world, depth + 1) / pdf;
+			return emitted + albedo * record.matPtr->scatterPdf(r, record, scattered) * color(scattered, world, depth + 1) / pdf;
 		}
 		else
 		{
@@ -121,7 +121,7 @@ int main() {
     vec3_test();
     int nx = 300;
     int ny = 300;
-	int ns = 50;
+	int ns = 34;
 
     ofstream outImg("test.ppm", ios_base::out);
     outImg << "P3\n" << nx << " " << ny << "\n255\n";

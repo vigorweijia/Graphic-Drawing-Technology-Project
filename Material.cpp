@@ -1,6 +1,17 @@
 #include "Material.h"
 #include "utils.h"
 
+/*vec3 Material::randomCosineDirection()
+{
+	float r1 = randomUniform();
+	float r2 = randomUniform();
+	float z = sqrt(1.0 - r2);
+	float phi = 2 * M_PI * r1;
+	float x = cos(phi) * 2 * sqrt(r2);
+	float y = sin(phi) * 2 * sqrt(r2);
+	return vec3(x, y, z);
+}*/
+
 bool Lambertian::scatter(const Ray& r, const HitRecord& record, vec3& attenuation, Ray& scattered, float& pdf)
 {
 	/*vec3 target = record.p + record.normal + randomInUnitSphere();
@@ -8,13 +19,22 @@ bool Lambertian::scatter(const Ray& r, const HitRecord& record, vec3& attenuatio
 	attenuation = albedo->value(record.u, record.v, record.p);
 	pdf = dot(record.normal, scattered.direction()) / M_PI;
 	return true;*/
-	vec3 direction;
+	/*vec3 direction;
 	do {
 		direction = randomInUnitSphere();
 	} while (dot(direction, record.normal) < 0);
 	scattered = Ray(record.p, unit_vector(direction));
 	attenuation = albedo->value(record.u, record.v, record.p);
 	pdf = 0.5 / M_PI;
+	return true;*/
+	Onb uvw;
+	uvw.buildFromW(record.normal);
+	do {
+		vec3 direction = uvw.local(randomCosineDirection());
+		scattered = Ray(record.p, unit_vector(direction));
+		pdf = dot(uvw.w(), scattered.direction()) / M_PI;
+	} while (fabs(pdf) < 0.00001);
+	attenuation = albedo->value(record.u, record.v, record.p);
 	return true;
 }
 
