@@ -15,3 +15,16 @@ vec3 randomCosineDirection()
 	float y = sin(phi) * 2 * sqrt(r2);
 	return vec3(x, y, z);
 }
+
+float HammersleyPhi(int i)
+{
+	float x = 0.0;
+	float f = 0.5;
+	while (i != 0)
+	{
+		x += f * (i & 1);
+		f *= 0.5;
+		i /= 2;
+	}
+	return x;
+}

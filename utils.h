@@ -11,4 +11,6 @@ float randomUniform(float a = 0.0, float b = 1.0);
 
 vec3 randomCosineDirection();
 
+float HammersleyPhi(int i);
+
 #endif

@@ -154,8 +154,8 @@ int main() {
 			vec3 col(0.0, 0.0, 0.0);
 			for (int k = 0; k < ns; k++)
 			{
-				float u = float(i + randomUniform()) / float(nx);
-				float v = float(j + randomUniform()) / float(ny);
+				float u = float(i + float(k/ns)) / float(nx);
+				float v = float(j + HammersleyPhi(k)) / float(ny);
 				Ray r = camera.getRay(u, v);
 				col += color(r, world, 0);
 			}
