@@ -9,6 +9,7 @@
 #include "HitableList.h"
 #include "Camera.h"
 #include "Material.h"
+#include "Pdf.h"
 
 using namespace std;
 
@@ -22,10 +23,10 @@ vec3 color(const Ray& r, Hitable *world, int depth)
 		Ray scattered;
 		vec3 albedo;
 		vec3 emitted = record.matPtr->emitted(r, record, record.u, record.v, record.p);
-		float pdf;
-		if (depth < 50 && record.matPtr->scatter(r, record, albedo, scattered, pdf))
+		float pdfVal;
+		if (depth < 50 && record.matPtr->scatter(r, record, albedo, scattered, pdfVal))
 		{
-			vec3 onLight = vec3(213 + randomUniform()*(343-213), 554, 227+randomUniform()*(332-227));
+			/*vec3 onLight = vec3(213 + randomUniform()*(343-213), 554, 227+randomUniform()*(332-227));
 			vec3 toLight = onLight - record.p;
 			float distanceSquared = toLight.length() * toLight.length();
 			toLight.make_unit();
@@ -36,10 +37,37 @@ vec3 color(const Ray& r, Hitable *world, int depth)
 			if (lightCosine < 0.000001)
 				return emitted;
 			pdf = distanceSquared / (lightCosine * lightArea);
-			scattered = Ray(record.p, toLight);
+			scattered = Ray(record.p, toLight);*/
+			/*CosinePdf p(record.normal);
+			vec3 direction;
+			do {
+				vec3 direction = p.generate();
+				scattered = Ray(record.p, unit_vector(direction));
+				pdfVal = p.value(scattered.direction());
+				//pdfVal = dot(p.uvw.w(), scattered.direction()) / M_PI; // seem as the same as above
+			} while (fabs(pdfVal) < 0.00001);*/
+			/*Hitable* lightShape = new XzRect(213, 343, 227, 332, 554, 0);
+			HitablePdf p(lightShape, record.p);
+			vec3 direction;
+			do {
+				vec3 direction = p.generate();
+				scattered = Ray(record.p, unit_vector(direction));
+				pdfVal = p.value(scattered.direction());
+			} while (fabs(pdfVal) < 0.00001);*/
+
+			Hitable* lightShape = new XzRect(213, 343, 227, 332, 554, 0);
+			HitablePdf p0(lightShape, record.p);
+			CosinePdf p1(record.normal);
+			MixturePdf p(&p0, &p1);
+			vec3 direction;
+			do {
+				vec3 direction = p.generate();
+				scattered = Ray(record.p, unit_vector(direction));
+				pdfVal = p.value(scattered.direction());
+			} while (fabs(pdfVal) < 0.00001);
 
 			//return emitted + attenuation * color(scattered, world, depth + 1);
-			return emitted + albedo * record.matPtr->scatterPdf(r, record, scattered) * color(scattered, world, depth + 1) / pdf;
+			return emitted + albedo * record.matPtr->scatterPdf(r, record, scattered) * color(scattered, world, depth + 1) / pdfVal;
 		}
 		else
 		{
@@ -134,7 +162,7 @@ int main() {
     vec3_test();
     int nx = 300;
     int ny = 300;
-	int ns = 34;
+	int ns = 20;
 
     ofstream outImg("test.ppm", ios_base::out);
     outImg << "P3\n" << nx << " " << ny << "\n255\n";

@@ -10,6 +10,7 @@
 
 #include "Hitable.h"
 #include "HitableList.h"
+#include "utils.h"
 
 class Sphere: public Hitable{
 private:
@@ -80,6 +81,8 @@ public:
 		x0(_x0), x1(_x1), z0(_z0), z1(_z1), y(_y), matPtr(mat) {}
 	bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& record) override;
 	bool boundingBox(float t0, float t1, AABB& box) override;
+	float PdfVal(const vec3& o, const vec3& v) override;
+	vec3 Random(const vec3& o) override;
 };
 
 class YzRect : public Hitable {

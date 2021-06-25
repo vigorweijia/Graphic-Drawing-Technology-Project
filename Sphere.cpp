@@ -341,6 +341,26 @@ bool XzRect::boundingBox(float t0, float t1, AABB& box)
 	return true;
 }
 
+float XzRect::PdfVal(const vec3& o, const vec3& v)
+{
+	HitRecord rec;
+	if (this->HitObject(Ray(o, v), 0.001, 1000, rec))
+	{
+		float area = (x1 - x0) * (z1 - z0);
+		float distanceSquared = rec.t * rec.t * v.length() * v.length();
+		float cosine = fabs(dot(v, rec.normal)) / v.length();
+		return distanceSquared / (cosine * area);
+	}
+	else
+		return 0;
+}
+
+vec3 XzRect::Random(const vec3& o)
+{
+	vec3 randomPoint = vec3(x0 + randomUniform()*(x1 - x0), y, z0 + randomUniform()*(z1 - z0));
+	return randomPoint - o;
+}
+
 bool YzRect::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
 {
 	float t = (x - r.origin().x()) / r.direction().x();
