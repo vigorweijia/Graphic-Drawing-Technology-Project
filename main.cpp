@@ -21,10 +21,23 @@ vec3 color(const Ray& r, Hitable *world, int depth)
     {
 		Ray scattered;
 		vec3 albedo;
-		vec3 emitted = record.matPtr->emitted(record.u, record.v, record.p);
+		vec3 emitted = record.matPtr->emitted(r, record, record.u, record.v, record.p);
 		float pdf;
 		if (depth < 50 && record.matPtr->scatter(r, record, albedo, scattered, pdf))
 		{
+			vec3 onLight = vec3(213 + randomUniform()*(343-213), 554, 227+randomUniform()*(332-227));
+			vec3 toLight = onLight - record.p;
+			float distanceSquared = toLight.length() * toLight.length();
+			toLight.make_unit();
+			if (dot(toLight, record.normal) < 0)
+				return emitted;
+			float lightArea = (343 - 213)*(332 - 227);
+			float lightCosine = fabs(toLight.y());
+			if (lightCosine < 0.000001)
+				return emitted;
+			pdf = distanceSquared / (lightCosine * lightArea);
+			scattered = Ray(record.p, toLight);
+
 			//return emitted + attenuation * color(scattered, world, depth + 1);
 			return emitted + albedo * record.matPtr->scatterPdf(r, record, scattered) * color(scattered, world, depth + 1) / pdf;
 		}
@@ -103,7 +116,7 @@ Hitable* CornellBox()
 	Material *light = new DiffuseLight(new ConstantTexture(vec3(15, 15, 15)));
 	list[i++] = new FlipNormals(new YzRect(0, 555, 0, 555, 555, green));
 	list[i++] = new YzRect(0, 555, 0, 555, 0, red);
-	list[i++] = new XzRect(213, 343, 227, 332, 554, light);
+	list[i++] = new FlipNormals(new XzRect(213, 343, 227, 332, 554, light));
 	list[i++] = new FlipNormals(new XzRect(0, 555, 0, 555, 555, white));
 	list[i++] = new XzRect(0, 555, 0, 555, 0, white);
 	list[i++] = new FlipNormals(new XyRect(0, 555, 0, 555, 555, white));

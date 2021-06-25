@@ -152,7 +152,10 @@ bool DiffuseLight::scatter(const Ray& rIn, const HitRecord& record, vec3& attenu
 	return false;
 }
 
-vec3 DiffuseLight::emitted(float u, float v, const vec3& p) const
+vec3 DiffuseLight::emitted(const Ray& r, const HitRecord& record, float u, float v, const vec3& p) const
 {
-	return emit->value(u, v, p);
+	if (dot(record.normal, r.direction()) < 0.0)
+		return emit->value(u, v, p);
+	else
+		return vec3(0, 0, 0);
 }
