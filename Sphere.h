@@ -115,9 +115,10 @@ public:
 	vec3 A, B, C;
 	Material* matPtr;
 	XzTriangle() = delete;
-	XzTriangle(const vec3& a, const vec3& b, const vec3& c, Material* mat) { A = a; B = b; C = c; }
+	XzTriangle(const vec3& a, const vec3& b, const vec3& c, Material* mat) { A = a; B = b; C = c; matPtr = mat; }
 	bool HitObject(const Ray& r, float tMin, float tMax, HitRecord& record) override;
 	bool boundingBox(float t0, float t1, AABB& box) override;
+	bool isInTriangle(const vec3& p);
 	float PdfVal(const vec3& o, const vec3& v) override;
 	vec3 Random(const vec3& o) override;
 };

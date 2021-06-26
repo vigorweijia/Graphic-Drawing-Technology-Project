@@ -420,7 +420,10 @@ float XzCircle::PdfVal(const vec3& o, const vec3& v)
 		return distanceSquared / (cosine * area);
 	}
 	else
+	{
+		std::cout << "Warning: not hit object, pdf = 0!";
 		return 0;
+	}
 }
 
 vec3 XzCircle::Random(const vec3& o)
@@ -431,23 +434,83 @@ vec3 XzCircle::Random(const vec3& o)
 	return randomPoint - o;
 }
 
+bool XzTriangle::isInTriangle(const vec3& p)
+{
+	vec3 v0 = C - A;
+	vec3 v1 = B - A;
+	vec3 v2 = p - A;
+
+	float dot00 = dot(v0, v0);
+	float dot01 = dot(v0, v1);
+	float dot02 = dot(v0, v2);
+	float dot11 = dot(v1, v1);
+	float dot12 = dot(v1, v2);
+
+	float inverDeno = 1 / (dot00 * dot11 - dot01 * dot01);
+
+	float u = (dot11 * dot02 - dot01 * dot12) * inverDeno;
+	if (u < 0 || u > 1) // if u out of range, return directly
+	{
+		return false;
+	}
+
+	float v = (dot00 * dot12 - dot01 * dot02) * inverDeno;
+	if (v < 0 || v > 1) // if v out of range, return directly
+	{
+		return false;
+	}
+
+	return u + v <= 1;
+}
+
 bool XzTriangle::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
 {
-	/*float t = (A.y() - r.origin().y()) / r.direction().y();
+	float t = (A.y() - r.origin().y()) / r.direction().y();
 	if (t < tMin || t > tMax)
 		return false;
 	float x = r.origin().x() + t * r.direction().x();
 	float z = r.origin().z() + t * r.direction().z();
-	if ((x - center.x())*(x - center.x()) + (z - center.z())*(z - center.z()) > radius*radius)
+	vec3 p(x, A.y(), z);
+	if (!isInTriangle(p))
 		return false;
-	record.u = (x - (center.x() - radius)) / (2 * radius);
-	record.v = (z - (center.z() - radius)) / (2 * radius);
+	record.u = 1;
+	record.v = 1;
 	record.t = t;
 	record.matPtr = matPtr;
 	record.p = r.loc_at_param(t);
 	record.normal = vec3(0, 1, 0);
-	return true;*/
 	return true;
+}
+
+bool XzTriangle::boundingBox(float t0, float t1, AABB& box)
+{
+	box = AABB(vec3(ffmin(A.x(), ffmin(B.x(), C.x())), A.y() - 0.001, ffmin(A.z(), ffmin(B.z(), C.z()))), 
+		vec3(ffmax(A.x(), ffmax(B.x(), C.x())), A.y() + 0.001, ffmax(A.z(), ffmax(B.z(), C.z()))));
+	return true;
+}
+
+float XzTriangle::PdfVal(const vec3& o, const vec3& v)
+{
+	HitRecord rec;
+	if (this->HitObject(Ray(o, v), 0.001, 1000, rec))
+	{
+		vec3 ABpAC = cross(B - A, C - A);
+		float area = 0.5 * ABpAC.length();
+		float distanceSquared = rec.t * rec.t * v.length() * v.length();
+		float cosine = fabs(dot(v, rec.normal)) / v.length();
+		return distanceSquared / (cosine * area);
+	}
+	else
+		return 0;
+}
+
+vec3 XzTriangle::Random(const vec3& o)
+{
+	float xi1 = randomUniform();
+	float xi2 = randomUniform();
+	float u = 1 - sqrt(xi1);
+	float v = xi2 * sqrt(xi1);
+	return u * A + v * B + (1 - u - v)*C;
 }
 
 bool FlipNormals::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
