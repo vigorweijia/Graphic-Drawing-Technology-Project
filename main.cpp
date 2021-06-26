@@ -55,7 +55,8 @@ vec3 color(const Ray& r, Hitable *world, int depth)
 				pdfVal = p.value(scattered.direction());
 			} while (fabs(pdfVal) < 0.00001);*/
 
-			Hitable* lightShape = new XzRect(213, 343, 227, 332, 554, 0);
+			//Hitable* lightShape = new XzRect(213, 343, 227, 332, 554, 0);
+			Hitable* lightShape = new XzCircle(vec3(278, 554, 279), 60, 0);
 			HitablePdf p0(lightShape, record.p);
 			CosinePdf p1(record.normal);
 			MixturePdf p(&p0, &p1);
@@ -144,7 +145,8 @@ Hitable* CornellBox()
 	Material *light = new DiffuseLight(new ConstantTexture(vec3(15, 15, 15)));
 	list[i++] = new FlipNormals(new YzRect(0, 555, 0, 555, 555, green));
 	list[i++] = new YzRect(0, 555, 0, 555, 0, red);
-	list[i++] = new FlipNormals(new XzRect(213, 343, 227, 332, 554, light));
+	//list[i++] = new FlipNormals(new XzRect(213, 343, 227, 332, 554, light));
+	list[i++] = new FlipNormals(new XzCircle(vec3(278, 554, 279), 60, light));
 	list[i++] = new FlipNormals(new XzRect(0, 555, 0, 555, 555, white));
 	list[i++] = new XzRect(0, 555, 0, 555, 0, white);
 	list[i++] = new FlipNormals(new XyRect(0, 555, 0, 555, 555, white));

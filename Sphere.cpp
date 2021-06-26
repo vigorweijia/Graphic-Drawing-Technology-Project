@@ -385,6 +385,71 @@ bool YzRect::boundingBox(float t0, float t1, AABB& box)
 	return true;
 }
 
+bool XzCircle::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
+{
+	float t = (center.y() - r.origin().y()) / r.direction().y();
+	if (t < tMin || t > tMax)
+		return false;
+	float x = r.origin().x() + t * r.direction().x();
+	float z = r.origin().z() + t * r.direction().z();
+	if ((x-center.x())*(x - center.x())+(z-center.z())*(z - center.z()) > radius*radius)
+		return false;
+	record.u = (x - (center.x() - radius)) / (2*radius);
+	record.v = (z - (center.z() - radius)) / (2*radius);
+	record.t = t;
+	record.matPtr = matPtr;
+	record.p = r.loc_at_param(t);
+	record.normal = vec3(0, 1, 0);
+	return true;
+}
+
+bool XzCircle::boundingBox(float t0, float t1, AABB& box)
+{
+	box = AABB(vec3(center.x() - radius, center.y()-0.001, center.z() - radius), vec3(center.x()+radius, center.y()+0.001, center.z()+radius));
+	return true;
+}
+
+float XzCircle::PdfVal(const vec3& o, const vec3& v)
+{
+	HitRecord rec;
+	if (this->HitObject(Ray(o, v), 0.001, 1000, rec))
+	{
+		float area = M_PI * radius * radius;
+		float distanceSquared = rec.t * rec.t * v.length() * v.length();
+		float cosine = fabs(dot(v, rec.normal)) / v.length();
+		return distanceSquared / (cosine * area);
+	}
+	else
+		return 0;
+}
+
+vec3 XzCircle::Random(const vec3& o)
+{
+	float r = sqrt(randomUniform());
+	float theta = randomUniform(0, 2*M_PI);
+	vec3 randomPoint = vec3(center.x() + r * cos(theta), center.y(), center.z() + r * sin(theta));
+	return randomPoint - o;
+}
+
+bool XzTriangle::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
+{
+	/*float t = (A.y() - r.origin().y()) / r.direction().y();
+	if (t < tMin || t > tMax)
+		return false;
+	float x = r.origin().x() + t * r.direction().x();
+	float z = r.origin().z() + t * r.direction().z();
+	if ((x - center.x())*(x - center.x()) + (z - center.z())*(z - center.z()) > radius*radius)
+		return false;
+	record.u = (x - (center.x() - radius)) / (2 * radius);
+	record.v = (z - (center.z() - radius)) / (2 * radius);
+	record.t = t;
+	record.matPtr = matPtr;
+	record.p = r.loc_at_param(t);
+	record.normal = vec3(0, 1, 0);
+	return true;*/
+	return true;
+}
+
 bool FlipNormals::HitObject(const Ray& r, float tMin, float tMax, HitRecord& record)
 {
 	if (ptr->HitObject(r, tMin, tMax, record))
