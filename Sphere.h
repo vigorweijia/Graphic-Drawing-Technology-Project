@@ -11,6 +11,7 @@
 #include "Hitable.h"
 #include "HitableList.h"
 #include "utils.h"
+#include "Onb.h"
 
 class Sphere: public Hitable{
 private:
@@ -23,6 +24,9 @@ public:
     bool HitObject(const Ray &r, float tMin, float tMax, HitRecord &record) override;
 	bool boundingBox(float t0, float t1, AABB& box) override;
 	void getSphereUV(const vec3& p, float& u, float &v);
+	float PdfVal(const vec3& o, const vec3& v) override;
+	vec3 Random(const vec3& o) override;
+	vec3 randomToSphere(float, float);
 };
 
 class Plane: public Hitable{

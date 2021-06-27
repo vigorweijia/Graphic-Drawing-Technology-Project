@@ -55,21 +55,28 @@ vec3 color(const Ray& r, Hitable *world, int depth)
 				pdfVal = p.value(scattered.direction());
 			} while (fabs(pdfVal) < 0.00001);*/
 
-			//Hitable* lightShape = new XzRect(213, 343, 227, 332, 554, 0);
-			//Hitable* lightShape = new XzCircle(vec3(278, 554, 279), 60, 0);
-			Hitable* lightShape = new XzTriangle(vec3(213, 554, 227), vec3(343, 554, 227), vec3(278, 554, 332), 0);
-			HitablePdf p0(lightShape, record.p);
-			CosinePdf p1(record.normal);
-			MixturePdf p(&p0, &p1);
-			vec3 direction;
-			do {
-				vec3 direction = p.generate();
-				scattered = Ray(record.p, unit_vector(direction));
-				pdfVal = p.value(scattered.direction());
-			} while (fabs(pdfVal) < 0.00001);
+			if (record.matPtr->isSpecular)
+			{
+				Hitable* lightShape = new XzRect(213, 343, 227, 332, 554, 0);
+				//Hitable* lightShape = new XzCircle(vec3(278, 554, 279), 60, 0);
+				//Hitable* lightShape = new XzTriangle(vec3(213, 554, 227), vec3(343, 554, 227), vec3(278, 554, 332), 0);
+				HitablePdf p0(lightShape, record.p);
+				CosinePdf p1(record.normal);
+				MixturePdf p(&p0, &p1);
+				vec3 direction;
+				do {
+					vec3 direction = p.generate();
+					scattered = Ray(record.p, unit_vector(direction));
+					pdfVal = p.value(scattered.direction());
+				} while (fabs(pdfVal) < 0.00001);
 
-			//return emitted + attenuation * color(scattered, world, depth + 1);
-			return emitted + albedo * record.matPtr->scatterPdf(r, record, scattered) * color(scattered, world, depth + 1) / pdfVal;
+				//return emitted + attenuation * color(scattered, world, depth + 1);
+				return emitted + albedo * record.matPtr->scatterPdf(r, record, scattered) * color(scattered, world, depth + 1) / pdfVal;
+			}
+			else
+			{
+				return emitted + albedo * color(scattered, world, depth + 1);
+			}
 		}
 		else
 		{
@@ -143,21 +150,27 @@ Hitable* CornellBox()
 	Material *red = new Lambertian(new ConstantTexture(vec3(0.65, 0.05, 0.05)));
 	Material *white = new Lambertian(new ConstantTexture(vec3(0.73, 0.73, 0.73)));
 	Material *green = new Lambertian(new ConstantTexture(vec3(0.12, 0.45, 0.12)));
+	Material *blue = new Lambertian(new ConstantTexture(vec3(0.1, 0.1, 0.65)));
 	Material *light = new DiffuseLight(new ConstantTexture(vec3(15, 15, 15)));
+	Material *checker = new Lambertian(new CheckerTexture(new ConstantTexture(vec3(0.1, 0.1, 0.65)), new ConstantTexture(vec3(0.73, 0.73, 0.73))));
+	Material *noise = new Lambertian(new NoiseTexture());
+	Material *roughBlue = new Microfacet();
+	Material *metal = new Metal(vec3(0.65, 0.45, 0.1), 0.01);
 	list[i++] = new FlipNormals(new YzRect(0, 555, 0, 555, 555, green));
 	list[i++] = new YzRect(0, 555, 0, 555, 0, red);
-	//list[i++] = new FlipNormals(new XzRect(213, 343, 227, 332, 554, light));
+	list[i++] = new FlipNormals(new XzRect(213, 343, 227, 332, 554, light));
 	//list[i++] = new FlipNormals(new XzCircle(vec3(278, 554, 279), 60, light));
-	list[i++] = new FlipNormals(new XzTriangle(vec3(213, 554, 227), vec3(343, 554, 227), vec3(278, 554, 332), light));
+	//list[i++] = new FlipNormals(new XzTriangle(vec3(200, 554, 227), vec3(420, 554, 227), vec3(310, 554, 380), light));
 	list[i++] = new FlipNormals(new XzRect(0, 555, 0, 555, 555, white));
 	list[i++] = new XzRect(0, 555, 0, 555, 0, white);
 	list[i++] = new FlipNormals(new XyRect(0, 555, 0, 555, 555, white));
-	list[i++] = new Translate(
+	/*list[i++] = new Translate(
 		new RotateY(new Box(vec3(0, 0, 0), vec3(165, 165, 165), white), -18), 
-		vec3(130, 0, 65));
+		vec3(130, 0, 65));*/
 	list[i++] = new Translate(
 		new RotateY(new Box(vec3(0, 0, 0), vec3(165, 330, 165), white), 15),
 		vec3(265, 0, 295));
+	list[i++] = new Sphere(vec3(190, 90, 190), 90, roughBlue);
 	return new HitableList(list, i);
 }
 
@@ -166,7 +179,7 @@ int main() {
     vec3_test();
     int nx = 300;
     int ny = 300;
-	int ns = 20;
+	int ns = 50;
 
     ofstream outImg("test.ppm", ios_base::out);
     outImg << "P3\n" << nx << " " << ny << "\n255\n";

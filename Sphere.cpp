@@ -56,6 +56,39 @@ bool Sphere::boundingBox(float t0, float t1, AABB& box)
 	return true;
 }
 
+float Sphere::PdfVal(const vec3& o, const vec3& v)
+{
+	HitRecord record;
+	if (this->HitObject(Ray(o, v), 0.001, 1000, record))
+	{
+		float cosThetaMax = sqrt(1.0 - radius * radius / (center - o).length());
+		float solidAngle = 2 * M_PI*(1.0 - cosThetaMax);
+		return 1 / solidAngle;
+	}	
+	else
+		return 0;
+}
+
+vec3 Sphere::randomToSphere(float radius, float distanceSquared)
+{
+	float r1 = randomUniform();
+	float r2 = randomUniform();
+	float z = 1 + r2 * (sqrt(1 - radius * radius / distanceSquared) - 1);
+	float phi = 2 * M_PI*r1;
+	float x = cos(phi)*sqrt(1-z*z);
+	float y = sin(phi)*sqrt(1-z*z);
+	return vec3(x, y, z);
+}
+
+vec3 Sphere::Random(const vec3& o)
+{
+	vec3 direction = center - o;
+	float distanceSquared = direction.length() * direction.length();
+	Onb uvw;
+	uvw.buildFromW(direction);
+	return uvw.local(randomToSphere(radius, distanceSquared));
+}
+
 bool Plane::HitObject(const Ray &r, float tMin, float tMax, HitRecord &record)
 {
 	vec3 aMinusP0 = r.origin() - p0;
@@ -421,7 +454,7 @@ float XzCircle::PdfVal(const vec3& o, const vec3& v)
 	}
 	else
 	{
-		std::cout << "Warning: not hit object, pdf = 0!";
+		//std::cout << "Warning: not hit object, pdf = 0!";
 		return 0;
 	}
 }
